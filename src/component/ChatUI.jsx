@@ -11,6 +11,7 @@ export default function ChatUI() {
   const [translatorCapabilities, setTranslatorCapabilities] = useState(null);
   const [isDetectorSupported, setIsDetectorSupported] = useState(true);
   const [isTranslatorSupported, setIsTranslatorSupported] = useState(true);
+  const [isTranslating, setIsTranslating] = useState(false);
   const languages = [
     { value: "en", label: "English" },
     { value: "es", label: "Spanish" },
@@ -102,6 +103,7 @@ export default function ChatUI() {
       setError("Please enter text to translate");
       return;
     }
+    setIsTranslating(true);
     try {
       const pairAvailable = await translatorCapabilities.languagePairAvailable(
         sourceLang,
@@ -124,6 +126,8 @@ export default function ChatUI() {
     } catch (err) {
       setError("Translation failed");
       console.error("Translation failed", err);
+    } finally {
+        setIsTranslating(false);
     }
   };
 
@@ -199,33 +203,36 @@ export default function ChatUI() {
                   {message.timestamp}
                 </p>
               </div>
-              {message.translation && (
+             {message.translation ? (
                 <div className="bg-emerald-500/5 p-3 rounded-xl w-3/4 md:w-2/3 ml-auto">
                   <p className="text-emerald-200">{message.translation}</p>
                   <p className="text-xs text-emerald-500/70 mt-1">
                     {getLanguageName(selectedLanguage)}
                   </p>
                 </div>
+              ) : (
+                <>
+                  {message.language === selectedLanguage ? (
+                    <p className="text-sm text-red-400">
+                      Please pick a different language to translate.
+                    </p>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        handleTranslate(message.id, message.text, message.language)
+                      }
+                      disabled={isTranslating}
+                      className="text-sm text-emerald-500 hover:text-emerald-600 transition-colors disabled:opacity-50"
+                    >
+                      {isTranslating ? (
+                        <span>Translating...</span>
+                      ) : (
+                        <span>Translate to {getLanguageName(selectedLanguage)}</span>
+                      )}
+                    </button>
+                  )}
+                </>
               )}
-              {!message.translation &&
-                (message.language === selectedLanguage ? (
-                  <p className="text-sm text-red-400">
-                    Please pick a different language to translate.
-                  </p>
-                ) : (
-                  <button
-                    onClick={() =>
-                      handleTranslate(
-                        message.id,
-                        message.text,
-                        message.language
-                      )
-                    }
-                    className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
-                  >
-                    Translate to {getLanguageName(selectedLanguage)}
-                  </button>
-                ))}
             </div>
           ))
         )}
