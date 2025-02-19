@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import LanguageDropdown from "./LanguageDropdown";
 
 export default function ChatUI() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [inputText, setInputText] = useState("");
-  const [messages, setMessages] = useState([]);
   const [detectedLanguage, setDetectedLanguage] = useState("");
   const [error, setError] = useState("");
   const [detector, setDetector] = useState(null);
@@ -19,6 +19,26 @@ export default function ChatUI() {
     { value: "tr", label: "Turkish" },
     { value: "pt", label: "Portuguese" },
   ];
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem("chatMessages");
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Error loading messages:", error);
+      return [];
+    }
+  });
+  useEffect(() => {
+    initialize();
+    try {
+      if (messages.length > 0) {
+        localStorage.setItem("chatMessages", JSON.stringify(messages));
+      }
+    } catch (error) {
+      console.error("Error saving messages:", error);
+      setError("Failed to save messages");
+    }
+  }, [messages]);
 
   const initialize = async () => {
     if (!("ai" in window) || !("languageDetector" in window.ai)) {
@@ -58,10 +78,6 @@ export default function ChatUI() {
       console.error("Failed to initialize translator", err);
     }
   };
-
-  if (!detector && !translatorCapabilities) {
-    initialize();
-  }
 
   const handleInputChange = async (e) => {
     const text = e.target.value;
@@ -122,6 +138,7 @@ export default function ChatUI() {
         text: inputText,
         language: lang,
         translation: null,
+        timestamp: new Date().toLocaleString(),
       };
       setMessages((prev) => [...prev, newMessage]);
       setInputText("");
@@ -173,14 +190,17 @@ export default function ChatUI() {
         ) : (
           messages.map((message) => (
             <div key={message.id} className="space-y-2">
-              <div className="bg-white/5 p-3 rounded-xl">
+              <div className="bg-white/5 p-3 rounded-xl w-3/4 md:w-2/3 mr-auto">
                 <p className="text-zinc-300">{message.text}</p>
                 <p className="text-xs text-zinc-500 mt-1">
                   {getLanguageName(message.language)}
                 </p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  {message.timestamp}
+                </p>
               </div>
               {message.translation && (
-                <div className="bg-emerald-500/5 p-3 rounded-xl ml-4">
+                <div className="bg-emerald-500/5 p-3 rounded-xl w-3/4 md:w-2/3 ml-auto">
                   <p className="text-emerald-200">{message.translation}</p>
                   <p className="text-xs text-emerald-500/70 mt-1">
                     {getLanguageName(selectedLanguage)}
@@ -188,7 +208,11 @@ export default function ChatUI() {
                 </div>
               )}
               {!message.translation &&
-                message.language !== selectedLanguage && (
+                (message.language === selectedLanguage ? (
+                  <p className="text-sm text-red-400">
+                    Please pick a different language to translate.
+                  </p>
+                ) : (
                   <button
                     onClick={() =>
                       handleTranslate(
@@ -201,7 +225,7 @@ export default function ChatUI() {
                   >
                     Translate to {getLanguageName(selectedLanguage)}
                   </button>
-                )}
+                ))}
             </div>
           ))
         )}
@@ -209,47 +233,13 @@ export default function ChatUI() {
 
       <form className="border-t border-white/10" onSubmit={handleSubmit}>
         <div className="px-4 py-2 border-b border-white/10">
-          <div className="relative w-36">
-            <button type="button"
-              onClick={() => setIsOpen(!isOpen)}
-              className="w-full px-3 py-1.5 text-sm text-zinc-400 bg-white/5 rounded-lg flex items-center justify-between hover:bg-white/[0.07] transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/70"
-              aria-expanded={isOpen}
-            >
-              {languages.find((lang) => lang.value === selectedLanguage)?.label}
-              <svg
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  isOpen ? "rotate-180" : ""
-                }`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-
-            {isOpen && (
-              <div
-                className="absolute bottom-full mb-2 w-full bg-zinc-900/95 backdrop-blur-lg rounded-xl border border-white/10 shadow-xl z-50"
-              >
-                {languages.map((language) => (
-                  <button
-                    key={language.value}
-                    onClick={() => {
-                      setSelectedLanguage(language.value);
-                      setIsOpen(false);
-                    }}
-                    className="w-full px-3 py-1.5 text-sm text-zinc-400 hover:bg-white/5 text-left first:rounded-t-xl last:rounded-b-xl transition-colors focus:outline-none focus:bg-white/10"
-                    aria-selected={selectedLanguage === language.value}
-                  >
-                    {language.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LanguageDropdown
+            languages={languages}
+            selectedLanguage={selectedLanguage}
+            setSelectedLanguage={setSelectedLanguage}
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+          />
           {detectedLanguage && (
             <p className="mt-1 text-xs text-zinc-500">
               Detected: {detectedLanguage}
