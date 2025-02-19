@@ -306,7 +306,14 @@ export default function ChatUI() {
         )}
 
         {messages.length === 0 ? (
-          <p className="text-zinc-400">Welcome</p>
+          <div className="text-center p-3 py-6 w-full max-w-xl relative inline-block">
+            <h2 className="text-emerald-400 font-bold mb-4 overflow-hidden whitespace-nowrap inline-block typewriter">Hi, how can I help you?</h2>
+            <p className="text-zinc-400 text-sm max-w-lg mx-auto description">
+              I can help you translate text between different languages and
+              summarize English text. Just type your message and I&apos;ll
+              detect the language automatically.
+            </p>
+          </div>
         ) : (
           messages.map((message) => (
             <div key={message.id} className="space-y-2">
@@ -357,7 +364,18 @@ export default function ChatUI() {
                         className="text-sm text-zinc-200 hover:text-zinc-300"
                         disabled={isSummarizing}
                       >
-                        {isSummarizing ? "Summarizing..." : "Summarize"}
+                        {isSummarizing ? (
+                          <span className="flex items-center">
+                            Summarizing
+                            <span className="loading-dots ml-1">
+                              <span>.</span>
+                              <span>.</span>
+                              <span>.</span>
+                            </span>
+                          </span>
+                        ) : (
+                          "Summarize"
+                        )}
                       </button>
                     )}
 
@@ -380,7 +398,14 @@ export default function ChatUI() {
                           disabled={isTranslating}
                         >
                           {isTranslating ? (
-                            "Translating..."
+                            <span className="flex items-center">
+                              Translating
+                              <span className="loading-dots ml-1">
+                                <span>.</span>
+                                <span>.</span>
+                                <span>.</span>
+                              </span>
+                            </span>
                           ) : (
                             <span>
                               Translate to {getLanguageName(selectedLanguage)}
