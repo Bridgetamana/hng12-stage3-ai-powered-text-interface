@@ -361,32 +361,34 @@ export default function ChatUI() {
                       </button>
                     )}
 
-                  {message.language === selectedLanguage ? (
-                    <p className="text-sm text-red-400">
-                      Please pick a different language to translate.
-                    </p>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        handleTranslate(
-                          message.id,
-                          message.text,
-                          message.language
-                        )
-                      }
-                      className="text-sm text-emerald-500 hover:text-emerald-600"
-                      disabled={
-                        isTranslating || message.language === selectedLanguage
-                      }
-                    >
-                      {isTranslating ? (
-                        "Translating..."
+                  {!message.translation && (
+                    <>
+                      {message.language === selectedLanguage ? (
+                        <p className="text-sm text-red-400">
+                          Please pick a different language to translate.
+                        </p>
                       ) : (
-                        <span>
-                          Translate to {getLanguageName(selectedLanguage)}
-                        </span>
+                        <button
+                          onClick={() =>
+                            handleTranslate(
+                              message.id,
+                              message.text,
+                              message.language
+                            )
+                          }
+                          className="text-sm text-emerald-500 hover:text-emerald-600"
+                          disabled={isTranslating}
+                        >
+                          {isTranslating ? (
+                            "Translating..."
+                          ) : (
+                            <span>
+                              Translate to {getLanguageName(selectedLanguage)}
+                            </span>
+                          )}
+                        </button>
                       )}
-                    </button>
+                    </>
                   )}
                 </div>
 
