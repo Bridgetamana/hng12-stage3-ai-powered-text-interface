@@ -12,6 +12,10 @@ export default function ChatUI() {
   const [isDetectorSupported, setIsDetectorSupported] = useState(true);
   const [isTranslatorSupported, setIsTranslatorSupported] = useState(true);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [summarizedTexts, setSummarizedTexts] = useState({});
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isSummarizerSupported, setIsSummarizerSupported] = useState(true);
+  const [summarizer, setSummarizer] = useState(null);
   const languages = [
     { value: "en", label: "English" },
     { value: "es", label: "Spanish" },
@@ -42,41 +46,111 @@ export default function ChatUI() {
   }, [messages]);
 
   const initialize = async () => {
-    if (!("ai" in window) || !("languageDetector" in window.ai)) {
+    if (!("ai" in window)) {
       setIsDetectorSupported(false);
-      setError("Language detection not supported");
-      console.error("Language detection not supported");
+      setIsTranslatorSupported(false);
+      setIsSummarizerSupported(false);
+      setError("AI APIs are not available in this browser");
       return;
     }
-    try {
-      const detectorCapabilities =
-        await window.ai.languageDetector.capabilities();
-      if (detectorCapabilities.available === "no") {
+
+    if ("languageDetector" in window.ai) {
+      try {
+        const detectorCapabilities =
+          await window.ai.languageDetector.capabilities();
+
+        if (detectorCapabilities.available === "no") {
+          setIsDetectorSupported(false);
+          setError("Language detection is not available on this device");
+        } else if (detectorCapabilities.available === "after-download") {
+          const newDetector = await window.ai.languageDetector.create({
+            monitor: (m) => {
+              m.addEventListener("downloadprogress", (e) => {
+                setError(
+                  `Downloading language model: ${Math.round(
+                    (e.loaded / e.total) * 100
+                  )}%`
+                );
+              });
+            },
+          });
+          await newDetector.ready;
+          setDetector(newDetector);
+          setIsDetectorSupported(true);
+          setError("");
+        } else if (detectorCapabilities.available === "readily") {
+          const newDetector = await window.ai.languageDetector.create();
+          setDetector(newDetector);
+          setIsDetectorSupported(true);
+          setError("");
+        }
+      } catch (err) {
+        setError("Failed to initialize language detector: " + err.message);
         setIsDetectorSupported(false);
-        setError("Language detection not available");
-        console.error("Language detection not available");
-      } else {
-        const newDetector = await window.ai.languageDetector.create();
-        setDetector(newDetector);
       }
-    } catch (err) {
-      setError("Failed to initialize language detector");
+    } else {
       setIsDetectorSupported(false);
-      console.error("Failed to initialize language detector", err);
+      setError("Language detection is not supported in this browser");
     }
-    if (!("ai" in window) || !("translator" in window.ai)) {
-      setIsTranslatorSupported(false);
-      setError("Translation not supported");
-      console.error("Translation not supported");
-      return;
+
+    if ("summarizer" in window.ai) {
+      try {
+        const summarizerCapabilities =
+          await window.ai.summarizer.capabilities();
+
+        if (summarizerCapabilities.available === "no") {
+          setIsSummarizerSupported(false);
+          setError("Summarization is not available on this device");
+        } else if (summarizerCapabilities.available === "after-download") {
+          const newSummarizer = await window.ai.summarizer.create({
+            type: "tl;dr",
+            format: "plain-text",
+            length: "short",
+            monitor: (m) => {
+              m.addEventListener("downloadprogress", (e) => {
+                setError(
+                  `Downloading summarization model: ${Math.round(
+                    (e.loaded / e.total) * 100
+                  )}%`
+                );
+              });
+            },
+          });
+          await newSummarizer.ready;
+          setSummarizer(newSummarizer);
+          setIsSummarizerSupported(true);
+          setError("");
+        } else if (summarizerCapabilities.available === "readily") {
+          const newSummarizer = await window.ai.summarizer.create({
+            type: "tl;dr",
+            format: "plain-text",
+            length: "short",
+          });
+          setSummarizer(newSummarizer);
+          setIsSummarizerSupported(true);
+          setError("");
+        }
+      } catch (err) {
+        setError("Failed to initialize summarizer: " + err.message);
+        setIsSummarizerSupported(false);
+      }
+    } else {
+      setIsSummarizerSupported(false);
+      setError("Summarization is not supported in this browser");
     }
-    try {
-      const capabilities = await window.ai.translator.capabilities();
-      setTranslatorCapabilities(capabilities);
-    } catch (err) {
-      setError("Failed to initialize translator");
+
+    if ("translator" in window.ai) {
+      try {
+        const capabilities = await window.ai.translator.capabilities();
+        setTranslatorCapabilities(capabilities);
+        setIsTranslatorSupported(true);
+      } catch (err) {
+        setError("Failed to initialize translator: " + err.message);
+        setIsTranslatorSupported(false);
+      }
+    } else {
       setIsTranslatorSupported(false);
-      console.error("Failed to initialize translator", err);
+      setError("Translation is not supported in this browser");
     }
   };
 
@@ -127,7 +201,49 @@ export default function ChatUI() {
       setError("Translation failed");
       console.error("Translation failed", err);
     } finally {
-        setIsTranslating(false);
+      setIsTranslating(false);
+    }
+  };
+
+  const handleSummarize = async (messageId, text) => {
+    if (!text.trim()) {
+      setError("Please enter text to summarize");
+      return;
+    }
+
+    if (text.length <= 150) {
+      setError("Text is too short to summarize (minimum 150 characters)");
+      return;
+    }
+
+    if (!summarizer || !isSummarizerSupported) {
+      setError("Summarization is not available");
+      return;
+    }
+
+    setIsSummarizing(true);
+    setError("");
+
+    try {
+      const stream = await summarizer.summarizeStreaming(text.trim());
+      let result = "";
+      let previousLength = 0;
+
+      for await (const segment of stream) {
+        const newContent = segment.slice(previousLength);
+        previousLength = segment.length;
+        result += newContent;
+
+        setSummarizedTexts((prev) => ({
+          ...prev,
+          [messageId]: result,
+        }));
+      }
+    } catch (err) {
+      console.error("Summarization failed:", err);
+      setError("Failed to summarize text: " + err.message);
+    } finally {
+      setIsSummarizing(false);
     }
   };
 
@@ -140,8 +256,8 @@ export default function ChatUI() {
       const newMessage = {
         id: Date.now(),
         text: inputText,
+        sender: "user",
         language: lang,
-        translation: null,
         timestamp: new Date().toLocaleString(),
       };
       setMessages((prev) => [...prev, newMessage]);
@@ -194,24 +310,57 @@ export default function ChatUI() {
         ) : (
           messages.map((message) => (
             <div key={message.id} className="space-y-2">
-              <div className="bg-white/5 p-3 rounded-xl w-3/4 md:w-2/3 mr-auto">
-                <p className="text-zinc-300">{message.text}</p>
-                <p className="text-xs text-zinc-500 mt-1">
-                  {getLanguageName(message.language)}
-                </p>
-                <p className="text-xs text-zinc-500 mt-1">
-                  {message.timestamp}
-                </p>
-              </div>
-             {message.translation ? (
-                <div className="bg-emerald-500/5 p-3 rounded-xl w-3/4 md:w-2/3 ml-auto">
-                  <p className="text-emerald-200">{message.translation}</p>
-                  <p className="text-xs text-emerald-500/70 mt-1">
-                    {getLanguageName(selectedLanguage)}
-                  </p>
+              <div
+                className={`flex ${
+                  message.sender === "user" ? "justify-end " : "justify-start "
+                }`}
+              >
+                <div className={`flex flex-col w-2/3`}>
+                  {message.sender === "user" && (
+                    <div className="flex justify-end mb-1">
+                      <span className="px-2 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-200 rounded-lg">
+                        YOU
+                      </span>
+                    </div>
+                  )}
+
+                  <div
+                    className={`px-4 py-3 rounded-2xl ${
+                      message.sender === "user"
+                        ? "bg-emerald-500/10 text-emerald-200 "
+                        : "bg-white/5 text-zinc-300"
+                    }`}
+                  >
+                    <div>{message.text}</div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-xs text-zinc-400 mt-1">
+                        {getLanguageName(message.language)}
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-1">
+                        {message.timestamp}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-end gap-2">
+                  {message.language === "en" &&
+                    message.text.length > 150 &&
+                    !summarizedTexts[message.id] &&
+                    isSummarizerSupported && (
+                      <button
+                        onClick={() =>
+                          handleSummarize(message.id, message.text)
+                        }
+                        className="text-sm text-zinc-200 hover:text-zinc-300"
+                        disabled={isSummarizing}
+                      >
+                        {isSummarizing ? "Summarizing..." : "Summarize"}
+                      </button>
+                    )}
+
                   {message.language === selectedLanguage ? (
                     <p className="text-sm text-red-400">
                       Please pick a different language to translate.
@@ -219,20 +368,61 @@ export default function ChatUI() {
                   ) : (
                     <button
                       onClick={() =>
-                        handleTranslate(message.id, message.text, message.language)
+                        handleTranslate(
+                          message.id,
+                          message.text,
+                          message.language
+                        )
                       }
-                      disabled={isTranslating}
-                      className="text-sm text-emerald-500 hover:text-emerald-600 transition-colors disabled:opacity-50"
+                      className="text-sm text-emerald-500 hover:text-emerald-600"
+                      disabled={
+                        isTranslating || message.language === selectedLanguage
+                      }
                     >
                       {isTranslating ? (
-                        <span>Translating...</span>
+                        "Translating..."
                       ) : (
-                        <span>Translate to {getLanguageName(selectedLanguage)}</span>
+                        <span>
+                          Translate to {getLanguageName(selectedLanguage)}
+                        </span>
                       )}
                     </button>
                   )}
-                </>
-              )}
+                </div>
+
+                {summarizedTexts[message.id] && (
+                  <div>
+                    <div className="flex justify-end mb-1">
+                      <span className="px-2 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-200 rounded-lg">
+                        YOU
+                      </span>
+                    </div>
+
+                    <div className="bg-white/5 text-zinc-300 p-3 rounded-xl w-3/4">
+                      <div className="text-sm font-medium mb-1 text-zinc-400">
+                        Summary
+                      </div>
+                      {summarizedTexts[message.id]}
+                    </div>
+                  </div>
+                )}
+
+                {message.translation && (
+                  <div className="flex flex-col w-3/4">
+                    <div className="flex items-start mb-1">
+                      <span className="px-2 py-1 text-xs font-medium bg-white/5 text-zinc-400 rounded-lg">
+                        AI
+                      </span>
+                    </div>
+                    <div className="bg-white/5 text-zinc-300 p-3 rounded-xl w-3/4">
+                      <div className="text-sm font-medium mb-1 text-zinc-400">
+                        Translation
+                      </div>
+                      {message.translation}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         )}
@@ -269,7 +459,7 @@ export default function ChatUI() {
           <button
             className="flex-none p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors focus:ring-2 focus:ring-emerald-500/70 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             type="submit"
-            disabled={!inputText.trim() || !detector}
+            disabled={!inputText.trim()}
           >
             <svg
               className="w-5 h-5"
