@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import LanguageDropdown from "./LanguageDropdown";
+import ClearChatModal from "./ClearChatModal";
 
 export default function ChatUI() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function ChatUI() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSummarizerSupported, setIsSummarizerSupported] = useState(true);
   const [summarizer, setSummarizer] = useState(null);
+  const [showClearChatModal, setShowClearChatModal] = useState(false);
   const languages = [
     { value: "en", label: "English" },
     { value: "es", label: "Spanish" },
@@ -44,6 +46,12 @@ export default function ChatUI() {
       setError("Failed to save messages");
     }
   }, [messages]);
+
+  const handleClearChat = () => {
+    setMessages([]);
+    localStorage.removeItem("chatMessages");
+    setShowClearChatModal(false);
+  };
 
   const initialize = async () => {
     if (!("ai" in window)) {
@@ -292,7 +300,36 @@ export default function ChatUI() {
           ></span>
           <h1 className="text-zinc-300 font-medium">AI Text Assist</h1>
         </div>
+        <button
+          onClick={() => setShowClearChatModal(true)}
+          className="p-1.5 rounded-md bg-red-500/10 text-red-300 hover:bg-red-400/20 focus:ring-2 focus:ring-red-500/70 focus:outline-none"
+          title="Clear chat history"
+          aria-label="Clear chat history"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
       </header>
+      {showClearChatModal && (
+        <ClearChatModal
+          onConfirm={handleClearChat}
+          onCancel={() => setShowClearChatModal(false)}
+        />
+      )}
 
       <main
         className="h-[500px] overflow-y-auto p-4 sm:p-6 space-y-4"

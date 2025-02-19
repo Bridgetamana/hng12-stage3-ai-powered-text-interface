@@ -27,14 +27,6 @@ body {
   animation-delay: 0.4s;
 }
 
-.typing-animation {
-  width: fit-content;
-  border-right: 2px solid;
-  overflow: hidden;
-  white-space: nowrap;
-  animation: typing 3s steps(25), cursor 0.4s step-end infinite alternate;
-}
-
 .typewriter {
   animation: typing 2s steps(21) forwards;
   font-size: clamp(1rem, 6vw, 2.5rem);
