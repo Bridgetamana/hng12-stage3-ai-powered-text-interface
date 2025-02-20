@@ -1,5 +1,5 @@
 import React from "react";
-import ChatUI from "./component/ChatUI";
+import ChatUI from "./page/ChatUI";
 
 const App = () => {
   return (
