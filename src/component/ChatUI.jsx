@@ -291,38 +291,40 @@ export default function ChatUI() {
   }
 
   return (
-    <div className="w-full max-w-2xl bg-zinc-900/50 rounded-2xl backdrop-blur-xl border border-white/10 overflow-hidden">
-      <header className="px-4 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="w-full max-w-2xl bg-white/90 dark:bg-zinc-900/80 rounded-3xl backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-lg dark:shadow-xl overflow-hidden">
+      <header className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
           <span
-            className="w-2 h-2 bg-emerald-200 rounded-full animate-pulse"
+            className="w-2.5 h-2.5 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse"
             aria-hidden="true"
           ></span>
-          <h1 className="text-zinc-300 font-medium">AI Text Assist</h1>
+          <h1 className="text-zinc-800 dark:text-zinc-100 font-medium tracking-wide">
+            AI Text Assist
+          </h1>
         </div>
-        <button
-          onClick={() => setShowClearChatModal(true)}
-          className="p-1.5 rounded-md bg-red-500/10 text-red-300 hover:bg-red-400/20 focus:ring-2 focus:ring-red-500/70 focus:outline-none"
-          title="Clear chat history"
-          aria-label="Clear chat history"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowClearChatModal(true)}
+            className="p-2 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10"
+            title="Clear chat history"
+            aria-label="Clear chat history"
           >
-            <path d="M3 6h18"></path>
-            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-            <line x1="10" y1="11" x2="10" y2="17"></line>
-            <line x1="14" y1="11" x2="14" y2="17"></line>
-          </svg>
-        </button>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
       </header>
       {showClearChatModal && (
         <ClearChatModal
@@ -332,20 +334,22 @@ export default function ChatUI() {
       )}
 
       <main
-        className="h-[500px] overflow-y-auto p-4 sm:p-6 space-y-4"
+        className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700 scrollbar-track-transparent"
         role="log"
         aria-live="polite"
       >
         {error && (
-          <div className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg text-sm">
+          <div className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20">
             {error}
           </div>
         )}
 
         {messages.length === 0 ? (
-          <div className="text-center p-3 py-6 w-full max-w-xl relative inline-block">
-            <h2 className="text-emerald-400 font-bold mb-4 overflow-hidden whitespace-nowrap inline-block typewriter">Hi, how can I help you?</h2>
-            <p className="text-zinc-400 text-sm max-w-lg mx-auto description">
+          <div className="text-center p-6 w-full max-w-xl mx-auto relative inline-block">
+            <h2 className="text-emerald-600 dark:text-emerald-300 font-bold mb-4 overflow-hidden whitespace-nowrap inline-block typewriter">
+              Hi, how can I help you?
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400  max-w-lg mx-auto description">
               I can help you translate text between different languages and
               summarize English text. Just type your message and I&apos;ll
               detect the language automatically.
@@ -353,34 +357,34 @@ export default function ChatUI() {
           </div>
         ) : (
           messages.map((message) => (
-            <div key={message.id} className="space-y-2">
+            <div key={message.id} className="space-y-3">
               <div
                 className={`flex ${
-                  message.sender === "user" ? "justify-end " : "justify-start "
+                  message.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 <div className={`flex flex-col w-2/3`}>
                   {message.sender === "user" && (
-                    <div className="flex justify-end mb-1">
-                      <span className="px-2 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-200 rounded-lg">
+                    <div className="flex justify-end mb-1.5">
+                      <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200 rounded-lg">
                         YOU
                       </span>
                     </div>
                   )}
 
                   <div
-                    className={`px-4 py-3 rounded-2xl ${
+                    className={`px-5 py-4 rounded-2xl ${
                       message.sender === "user"
-                        ? "bg-emerald-500/10 text-emerald-200 "
-                        : "bg-white/5 text-zinc-300"
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-100 dark:border-emerald-500/20"
+                        : "bg-zinc-100 text-zinc-800 border border-zinc-200 dark:bg-zinc-800/50 dark:text-zinc-200 dark:border-zinc-700/30"
                     }`}
                   >
-                    <div>{message.text}</div>
-                    <div className="flex justify-between items-center">
-                      <div className="text-xs text-zinc-400 mt-1">
+                    <div className="leading-relaxed">{message.text}</div>
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="text-xs font-medium text-zinc-500">
                         {getLanguageName(message.language)}
                       </div>
-                      <p className="text-xs text-zinc-400 mt-1">
+                      <p className="text-xs text-zinc-500">
                         {message.timestamp}
                       </p>
                     </div>
@@ -388,8 +392,8 @@ export default function ChatUI() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-end gap-2">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-end gap-4">
                   {message.language === "en" &&
                     message.text.length > 150 &&
                     !summarizedTexts[message.id] &&
@@ -398,12 +402,12 @@ export default function ChatUI() {
                         onClick={() =>
                           handleSummarize(message.id, message.text)
                         }
-                        className="text-sm text-zinc-200 hover:text-zinc-300"
+                        className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1"
                         disabled={isSummarizing}
                       >
                         {isSummarizing ? (
                           <span className="flex items-center">
-                            Summarizing
+                             Summarizing
                             <span className="loading-dots ml-1">
                               <span>.</span>
                               <span>.</span>
@@ -411,7 +415,19 @@ export default function ChatUI() {
                             </span>
                           </span>
                         ) : (
-                          "Summarize"
+                          <>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M4 6h16M4 12h10M4 18h6" />
+                            </svg>
+                            Summarize
+                          </>
                         )}
                       </button>
                     )}
@@ -419,8 +435,8 @@ export default function ChatUI() {
                   {!message.translation && (
                     <>
                       {message.language === selectedLanguage ? (
-                        <p className="text-sm text-red-400">
-                          Please pick a different language to translate.
+                        <p className="text-sm text-red-500 dark:text-red-300 italic">
+                          Please select a different language
                         </p>
                       ) : (
                         <button
@@ -431,7 +447,7 @@ export default function ChatUI() {
                               message.language
                             )
                           }
-                          className="text-sm text-emerald-500 hover:text-emerald-600"
+                          className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
                           disabled={isTranslating}
                         >
                           {isTranslating ? (
@@ -444,9 +460,24 @@ export default function ChatUI() {
                               </span>
                             </span>
                           ) : (
-                            <span>
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth="2"
+                                stroke="currentColor"
+                                width="16"
+                                height="16"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
+                                />
+                              </svg>
                               Translate to {getLanguageName(selectedLanguage)}
-                            </span>
+                            </>
                           )}
                         </button>
                       )}
@@ -455,33 +486,27 @@ export default function ChatUI() {
                 </div>
 
                 {summarizedTexts[message.id] && (
-                  <div>
-                    <div className="flex justify-end mb-1">
-                      <span className="px-2 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-200 rounded-lg">
-                        YOU
+                  <div className="w-3/4">
+                    <div className="flex justify-end mb-1.5">
+                      <span className="px-2.5 py-1 text-xs font-medium bg-zinc-50 text-zinc-700 dark:bg-zinc-500/10 dark:text-zinc-200 rounded-lg uppercase">
+                        summary
                       </span>
                     </div>
 
-                    <div className="bg-white/5 text-zinc-300 p-3 rounded-xl w-3/4">
-                      <div className="text-sm font-medium mb-1 text-zinc-400">
-                        Summary
-                      </div>
+                    <div className="bg-white text-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:bg-zinc-800/60 dark:text-zinc-200 dark:border-zinc-700/30 w-full shadow-sm">
                       {summarizedTexts[message.id]}
                     </div>
                   </div>
                 )}
 
                 {message.translation && (
-                  <div className="flex flex-col w-3/4">
-                    <div className="flex items-start mb-1">
-                      <span className="px-2 py-1 text-xs font-medium bg-white/5 text-zinc-400 rounded-lg">
-                        AI
+                  <div className="w-3/4">
+                    <div className="flex items-start mb-1.5">
+                      <span className="px-2.5 py-1 text-xs font-medium bg-zinc-50 text-zinc-700 dark:bg-zinc-500/10 dark:text-zinc-200 rounded-lg uppercase">
+                        Translation
                       </span>
                     </div>
-                    <div className="bg-white/5 text-zinc-300 p-3 rounded-xl w-3/4">
-                      <div className="text-sm font-medium mb-1 text-zinc-400">
-                        Translation
-                      </div>
+                    <div className="bg-white text-zinc-800 p-4 rounded-2xl border border-zinc-200 dark:bg-zinc-800/60 dark:text-zinc-200 dark:border-zinc-700/30 w-full shadow-sm">
                       {message.translation}
                     </div>
                   </div>
@@ -492,8 +517,11 @@ export default function ChatUI() {
         )}
       </main>
 
-      <form className="border-t border-white/10" onSubmit={handleSubmit}>
-        <div className="px-4 py-2 border-b border-white/10">
+      <form
+        className="border-t border-zinc-200 dark:border-zinc-800"
+        onSubmit={handleSubmit}
+      >
+        <div className="px-5 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <LanguageDropdown
             languages={languages}
             selectedLanguage={selectedLanguage}
@@ -502,12 +530,12 @@ export default function ChatUI() {
             setIsOpen={setIsOpen}
           />
           {detectedLanguage && (
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1.5 text-xs text-zinc-500">
               Detected: {detectedLanguage}
             </p>
           )}
         </div>
-        <div className="p-4 flex items-center gap-2">
+        <div className="p-4 flex items-center gap-3">
           <label htmlFor="chat-input" className="sr-only">
             Type your message
           </label>
@@ -517,11 +545,11 @@ export default function ChatUI() {
             value={inputText}
             onChange={handleInputChange}
             placeholder="Translate or summarize your text..."
-            className="flex-1 min-w-0 bg-white/5 text-zinc-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/70 placeholder-zinc-600"
+            className="flex-1 min-w-0 bg-zinc-100 text-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-300 placeholder-zinc-500 border border-zinc-200 dark:bg-zinc-800/60 dark:text-zinc-200 dark:focus:ring-emerald-500/40 dark:placeholder-zinc-500 dark:border-zinc-700/30"
             required
           />
           <button
-            className="flex-none p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors focus:ring-2 focus:ring-emerald-500/70 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-none p-3 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-all duration-200 focus:ring-2 focus:ring-emerald-300 focus:outline-none dark:focus:ring-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             type="submit"
             disabled={!inputText.trim()}
           >
