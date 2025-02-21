@@ -274,7 +274,7 @@ export default function ChatUI() {
       setInputText("");
       setDetectedLanguage("");
     } catch (err) {
-      setError("Failed to process message");
+      setError("Failed to process message, please try refreshing the page");
       console.error("Failed to process message", err);
     }
   };

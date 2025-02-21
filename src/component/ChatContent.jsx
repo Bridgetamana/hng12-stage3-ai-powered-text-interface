@@ -18,11 +18,6 @@ export default function ChatContent({
       role="log"
       aria-live="polite"
     >
-      {error && (
-        <div className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20">
-          {error}
-        </div>
-      )}
 
       {messages.length === 0 ? (
         <div className="text-center p-6 w-full max-w-xl mx-auto relative inline-block">
@@ -194,6 +189,11 @@ export default function ChatContent({
             </div>
           </div>
         ))
+      )}
+      {error && (
+        <div className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20">
+          {error}
+        </div>
       )}
     </main>
   );
