@@ -6,7 +6,7 @@ import InputForm from "../component/InputForm";
 
 export default function ChatUI() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [selectedLanguage, setSelectedLanguage] = useState("es");
   const [inputText, setInputText] = useState("");
   const [detectedLanguage, setDetectedLanguage] = useState("");
   const [error, setError] = useState("");
